@@ -27,10 +27,10 @@ np.random.seed(seed=12345)
 
 Parser = argparse.ArgumentParser(description='Testing the tracker on MOT style')
 Parser.add_argument('--base_dir',
-                     default = './HT21',
+                     default = '/workspace/juntae/Crowd-Estimation/fast_rcnn/HT21',
                     type=str, help='Base directory for the dataset')
 Parser.add_argument('--save_path',
-                    default = '/workspace/HeadHunter--T/save_dir',
+                    default = '/workspace/juntae/Crowd-Estimation/fast_rcnn/run_save',
                     type=str, help='Directory to save the results')
 Parser.add_argument('--cfg_file', 
                     default='./config/config.yaml',
@@ -46,7 +46,7 @@ Parser.add_argument('--save_frames',
 # practice로 하면, 실제 사용할 데이터 사용
 Parser.add_argument('--dataset', 
                     # default='all',
-                    default = 'practice2',
+                    default = 'practice',
                     type=str, help='Train/Test/All')
 
 Parser.add_argument('--detector', 
@@ -145,7 +145,7 @@ for dset in datasets:
         # print(im_path, '*'+seq_ext)
 
         # Create detector and traktor
-        detector = HeadHunter(net_cfg, det_cfg, im_shape, im_path).cuda()
+        detector = HeadHunter(net_cfg, det_cfg).cuda()
         save_dir = save_paths[ind] if args.save_frames else None
 
         """

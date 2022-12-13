@@ -15,7 +15,7 @@ import os.path as osp
 
 class HeadHunter(FasterRCNN):
     
-    def __init__(self, net_cfg, det_cfg, im_shape, im_dir, custom_anchor=False):
+    def __init__(self, net_cfg, det_cfg, custom_anchor=False):
 
         self.__device = torch.device("cuda")
 

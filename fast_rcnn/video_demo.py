@@ -22,6 +22,8 @@ from torchvision import transforms
 from collections import defaultdict
 import cv2
 import time
+from PIL import Image
+import shutil
 
 img_transform = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 tensor_transform = transforms.ToTensor()
@@ -37,6 +39,13 @@ def read_public_det(det):
                                               cur_det[3]+cur_det[5],
                                               cur_det[6]/100.])
     return det_dict
+
+def video_pre_process(frame_number, cap: object):
+    _, frame = cap.read()
+    im = Image.fromarray(frame)
+    if not os.path.isdir('./temp'):
+        os.mkdir('./temp')
+    im.save(f'./temp/{str(frame_number).zfill(5)}.jpg')
 
 def main(args):
     # Get parameters from Config file
@@ -67,97 +76,50 @@ def main(args):
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     out = cv2.VideoWriter('./out_video.avi', fourcc, 30, (width*2, height))
 
-    frame_count = 0
+    print('[1/2] Video preprocessing ...')
     for i in tqdm(range(length)):
-        try:
-            ret, frame = cap.read()
-            # frame = cv2.resize(frame, (width, height))
-        except:
-            print("test end")
-            cap.release()
-            break
+        video_pre_process(frame_number=i, cap=cap)
 
-        frame = frame.copy()
-        ori_frame = frame.copy()
-        im_shape = (height, width, 3)
-        cam_motion = True
+    cam_motion = True
+    log.info("Total length is " + str(length))
+    im_shape = (height, width, 3)
+    im_path = './temp'
+    seq_images = sorted(glob(osp.join(im_path, '*'+'.jpg')))
 
-        detector = HeadHunter(net_cfg, det_cfg).cuda()
-        save_dir = args.save_path
+    # Create detector and traktor
+    detector = HeadHunter(net_cfg, det_cfg).to(args.device)
 
-        tracker = Tracker(detector, tracker_cfg, tracktor_cfg, motion_cfg, im_shape,
-                    save_dir=save_dir,
-                    save_frames=args.save_frames, cam_motion=cam_motion,
-                    public_detections=None)
-        try:
-            out_frame = tracker.step(frame)
-        except:
-            out_frame = ori_frame
-            print(f'{i} frame error')
-        cur_result = tracker.get_results()
+    tracker = Tracker(detector, tracker_cfg, tracktor_cfg, motion_cfg, im_shape,
+                save_dir=args.save_path,
+                save_frames=args.save_frames, cam_motion=cam_motion,
+                public_detections=None)
 
+    time_list = []
+    print('[2/2] Start video inference')
+    for i, im0 in enumerate(tqdm(seq_images)):
+        start = time.time()
+        cur_im = imread(im0)
+        ori_frame = cur_im.copy()
+        out_frame, count = tracker.step(cur_im)
+        cv2.putText(out_frame, "Count:" + str(count), (80, 80), cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 0, 255), 5)
         res = np.hstack((ori_frame, out_frame))
         out.write(res)
-        # print(len(cur_result[frame_count][1]))
+        end = time.time()
+        time_list.append(end-start)
+    print(f"mean_elapsed per frame: {round(np.mean(time_list), 2)}")
 
-
-    # Get sequences of MOT Dataset
-    # datasets = ('HT-train', 'HT-test') if args.dataset == 'all' else (args.dataset, )
-    # for dset in datasets:
-    #     mot_dir = osp.join(args.base_dir, dset)
-    #     mot_seq = os.listdir(mot_dir)[args.start_ind:]
-    #     mot_paths = sorted([osp.join(mot_dir, seq) for seq in mot_seq])
-
-    #     # Create the required saving directories
-    #     if args.save_frames:
-    #         save_paths = [osp.join(args.save_path, seq) for seq in mot_seq]
-    #         _ = [os.makedirs(i, exist_ok=True) for i in save_paths]
-    #         assert len(mot_paths) == len(save_paths)
-
-    #     for ind, mot_p in enumerate(tqdm(mot_paths)):
-    #         seqfile = osp.join(mot_p, 'seqinfo.ini')
-    #         config = configparser.ConfigParser()
-    #         config.read(seqfile)
-    #         c_width = int(config['Sequence']['imWidth'])
-    #         c_height = int(config['Sequence']['imHeight'])
-    #         seq_length = int(config['Sequence']['seqLength'])
-    #         seq_ext = config['Sequence']['imExt']
-    #         seq_dir = config['Sequence']['imDir']
-    #         cam_motion = bool(config['Sequence'].get('cam_motion', False))
-    #         # seq_name = config['Sequence']['name']
-    #         traj_dir = osp.join(args.save_path, dset, mot_seq[ind])
-    #         os.makedirs(traj_dir, exist_ok=True)
-    #         # traj_fname = osp.join(traj_dir, 'pred.txt')
-    #         log.info("Total length is " + str(seq_length))
-    #         im_shape = (c_height, c_width, 3)
-    #         im_path = osp.join(mot_p, seq_dir)
-    #         print(f"start {im_path}")
-    #         seq_images = sorted(glob(osp.join(im_path, '*'+seq_ext)))
-
-    #         # Create detector and traktor
-    #         detector = HeadHunter(net_cfg, det_cfg, im_shape, im_path).cuda()
-    #         save_dir = save_paths[ind] if args.save_frames else None
-
-    #         tracker = Tracker(detector, tracker_cfg, tracktor_cfg, motion_cfg, im_shape,
-    #                     save_dir=save_dir,
-    #                     save_frames=args.save_frames, cam_motion=cam_motion,
-    #                     public_detections=None)
-
-    #         for im0 in tqdm(seq_images):
-    #             cur_im = imread(im0)
-    #             out_frame = tracker.step(cur_im)
-
-            # cur_result = tracker.get_results()
-            # with open(traj_fname, "w+") as of:
-            #     writer = csv.writer(of, delimiter=',')
-            #     for i, track in cur_result.items():
-            #         for frame, bb in track.items():
-            #             x1 = bb[0]
-            #             y1 = bb[1]
-            #             x2 = bb[2]
-            #             y2 = bb[3]
-            #             writer.writerow([frame, i, x1, y1, x2-x1+1,
-            #                             y2-y1+1, 1, 1, 1, 1])
+    cur_result = tracker.get_results()
+    with open(os.path.join('./temp', 'log.txt'), "w+") as of:
+        writer = csv.writer(of, delimiter=',')
+        for i, track in cur_result.items():
+            for frame, bb in track.items():
+                x1 = bb[0]
+                y1 = bb[1]
+                x2 = bb[2]
+                y2 = bb[3]
+                writer.writerow([frame, i, x1, y1, x2-x1+1,
+                                y2-y1+1, 1, 1, 1, 1])
+    # shutil.rmtree('./temp')
 
 if __name__ == '__main__':
 
@@ -182,6 +144,9 @@ if __name__ == '__main__':
     Parser.add_argument('--dataset', 
                         default='all',
                         type=str, help='Train/Test/All')
+    Parser.add_argument('--device',
+                        default='cuda:0',
+                        type=str, help='set gpu device')
 
     Parser.add_argument('--detector', 
                         default='det',

@@ -135,5 +135,7 @@ run_save/
 videos/
 
 __init__.py
-
+fast_rcnn/test.jpg
+fast_rcnn/out_video.avi
+temp/
 

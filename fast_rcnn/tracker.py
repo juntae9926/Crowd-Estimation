@@ -415,7 +415,7 @@ class Tracker:
             assert self.save_dir is not None
             plotted_im = plot_boxes(blob, matched_map)
             imsave(osp.join(self.save_dir, "{:06d}".format(self.frame_number) + '.jpg'), plotted_im)
-
+        plotted_im = plot_boxes(blob, matched_map)
         ####################
         # Generate Results #
         ####################
@@ -425,6 +425,7 @@ class Tracker:
             position = t.pos
             self.results[t.id][self.frame_number] = np.concatenate([position, np.array([1.])])
         self.last_image = blob
+        return plotted_im, len([*new_id_map.keys()])
 
 
     def _compute_warp_matrix(self):
