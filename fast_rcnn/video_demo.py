@@ -45,7 +45,7 @@ def video_pre_process(frame_number, cap: object):
     im = Image.fromarray(frame)
     if not os.path.isdir('./temp'):
         os.mkdir('./temp')
-    im.save(f'./temp/{str(frame_number).zfill(5)}.jpg')
+        im.save(f'./temp/{str(frame_number).zfill(5)}.jpg')
 
 def main(args):
     # Get parameters from Config file
@@ -96,19 +96,23 @@ def main(args):
 
     time_list = []
     print('[2/2] Start video inference')
-    out_folder = './out/'+ args.video_path.split('/')[-1].split('.')[0]
+    out_folder = './out_'+ args.video_path.split('/')[-1].rstrip('.mp4')
     if not os.path.isdir(out_folder):
         os.makedirs(out_folder)
+    
     for i, im0 in enumerate(tqdm(seq_images)):
         start = time.time()
         cur_im = imread(im0)
         ori_frame = cur_im.copy()
-        out_frame, count = tracker.step(cur_im)
+        try:
+            out_frame, count = tracker.step(cur_im)
+        except:
+            out_frame, count = cur_im, count
         cv2.putText(out_frame, "Count:" + str(count), (80, 80), cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 0, 255), 5)
         res = np.hstack((ori_frame, out_frame))
         
         box_image = Image.fromarray(out_frame)
-        box_image.save(out_folder + f'/{i}.jpg')
+        box_image.save(out_folder + f'/{str(i).zfill(5)}.jpg')
 
         out.write(res)
         end = time.time()
@@ -159,7 +163,7 @@ if __name__ == '__main__':
                         default='det',
                         type=str, help='Directory where public detection are saved')
     Parser.add_argument('--video_path',
-                        default='./videos/as_2.mp4',
+                        default='./videos/as_1.mp4',
                         type=str, help='video file directory to inference')
 
     args = Parser.parse_args()
