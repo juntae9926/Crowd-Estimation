@@ -3,7 +3,7 @@ This repository contains several crowd estimation algorithms to apply my task.
 I strongly reuse the implementations of `Tracking Pedestrian Heads in Dense Crowd(CVPR 2021)` and 
 `An end to end transformer model for crowd localization(ECCV 2022)`
 
-## Dataset :
+## Dataset
 
 1. For HeadHunter--T
 - CroHD dataset  [here](https://motchallenge.net/data/Head_Tracking_21/). 
@@ -12,7 +12,7 @@ I strongly reuse the implementations of `Tracking Pedestrian Heads in Dense Crow
 - NWPU-Crowd dataset [here](https://gjy3035.github.io/NWPU-Crowd-Sample-Code/)
 
 
-## Setup Instructions:
+## Setup Instructions
 
 ### 1. HeadHunter--T
 
@@ -32,10 +32,9 @@ In order to execute this codebase the following requirements need to be satisfie
 * Turning some hyper-parameters will also bring improvement (e.g., the image size, crop size, number of queries).
 
 
-## Instructions to Run: 
+## Instructions to Run
 ```
-run image_test.py # with your arguments
-run video_test.py # with your arguments
+run video_demo.py # with your arguments
 ```
 
 
