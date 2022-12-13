@@ -96,6 +96,9 @@ def main(args):
 
     time_list = []
     print('[2/2] Start video inference')
+    out_folder = './out/'+ args.video_path.split('/')[-1].split('.')[0]
+    if not os.path.isdir(out_folder):
+        os.makedirs(out_folder)
     for i, im0 in enumerate(tqdm(seq_images)):
         start = time.time()
         cur_im = imread(im0)
@@ -103,6 +106,10 @@ def main(args):
         out_frame, count = tracker.step(cur_im)
         cv2.putText(out_frame, "Count:" + str(count), (80, 80), cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 0, 255), 5)
         res = np.hstack((ori_frame, out_frame))
+        
+        box_image = Image.fromarray(out_frame)
+        box_image.save(out_folder + f'/{i}.jpg')
+
         out.write(res)
         end = time.time()
         time_list.append(end-start)
@@ -119,7 +126,7 @@ def main(args):
                 y2 = bb[3]
                 writer.writerow([frame, i, x1, y1, x2-x1+1,
                                 y2-y1+1, 1, 1, 1, 1])
-    # shutil.rmtree('./temp')
+    shutil.rmtree('./temp')
 
 if __name__ == '__main__':
 

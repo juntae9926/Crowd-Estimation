@@ -425,7 +425,7 @@ class Tracker:
             position = t.pos
             self.results[t.id][self.frame_number] = np.concatenate([position, np.array([1.])])
         self.last_image = blob
-        return plotted_im, len([*new_id_map.keys()])
+        return plotted_im, len(self.boxes)
 
 
     def _compute_warp_matrix(self):
