@@ -1,4 +1,4 @@
-# ReadME
+# Crowd Estimation
 This repository contains several crowd estimation algorithms to apply my task.
 I strongly reuse the implementations of `Tracking Pedestrian Heads in Dense Crowd(CVPR 2021)` and 
 `An end to end transformer model for crowd localization(ECCV 2022)`
