@@ -136,6 +136,6 @@ videos/
 
 __init__.py
 fast_rcnn/test.jpg
-fast_rcnn/out_video.avi
+fast_rcnn/out*
 temp/
 
