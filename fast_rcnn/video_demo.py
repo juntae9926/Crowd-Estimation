@@ -45,7 +45,7 @@ def video_pre_process(frame_number, cap: object):
     im = Image.fromarray(frame)
     if not os.path.isdir('./temp'):
         os.mkdir('./temp')
-        im.save(f'./temp/{str(frame_number).zfill(5)}.jpg')
+        im.save(f'./temp/{frame_number}.jpg')
 
 def main(args):
     # Get parameters from Config file
